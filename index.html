@@ -1,0 +1,112 @@
+<html>
+  <head>
+    <title></title>
+    <meta content="">
+    <link href="c3-0.7.8/c3.min.css" rel="stylesheet">
+    <style>
+      input{width: 70px}
+      .c3-target-0 {
+        stroke-width: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    Días pronóstico <input type="number" name="horas" /><br>
+    Base Baku: Stock <input type="number" name="baku_stock" />, VxD <input type="number" name="baku_ratio" /> | Imprimir <input type="number" name="baku_imprimir" /><button type="button" onclick="bakuImprimirBtn()">Ok</button><br>
+    Base Donn: Stock <input type="number" name="donn_stock" />, VxD <input type="number" name="donn_ratio" /> | Imprimir <input type="number" name="donn_imprimir" /><button type="button" onclick="donnImprimirBtn()">Ok</button><br>
+    Prioridad impresión: <strong><span id="prioridad"></span></strong><br>
+    <!--<button type="button" onclick="reloadBtn()">Redibujar</button>-->
+    <br>
+
+    <div id="chart"></div>
+
+    <script src="d3.v5.min.js"></script>
+    <script src="c3-0.7.8/c3.min.js"></script>
+    <script src="jquery-3.4.1.min.js"></script>
+    
+    <script>    
+      var chart = c3.generate({
+        bindto: '#chart',
+        data: {
+          columns: []
+        },
+        axis: {
+          x: {
+            label: {
+              text: 'Tiempo [días]'
+            }
+          },
+          y: {
+            label: {
+              text: 'Stock [u]',
+              position: 'outer-middle'
+            }
+          }
+        },
+        point: {
+          show: false
+        },
+        legend: {
+          hide: '0'
+        }
+      });
+
+      function reloadBtn(){
+        var horas = parseInt($('input[name=horas]').val())+1
+        var bakuStock = $('input[name=baku_stock]').val()
+        var bakuVxH = $('input[name=baku_ratio]').val()
+        var donnStock = $('input[name=donn_stock]').val()
+        var donnVxH = $('input[name=donn_ratio]').val()
+        
+        var line0 = ['0']
+        var line1 = ['Base Baku']
+        var line2 = ['Base Donn']
+        
+        for (var i=0; i<horas; i++){
+          line0.push(0)
+          line1.push(bakuStock - i*bakuVxH)
+          line2.push(donnStock - i*donnVxH)
+        }
+        
+        chart.load({
+          columns: [line0, line1, line2],
+          colors: {
+              0: 'black'
+          }
+        });
+        
+        var minZero = 99999
+        var priori = ''
+        var bakuZero = bakuStock/bakuVxH
+        if (bakuZero < minZero){
+          minZero = bakuZero
+          priori='Base Baku'
+        }
+        var donnZero = donnStock/donnVxH
+        if (donnZero < minZero){
+          minZero = donnZero
+          priori='Base Donn'
+        }
+        
+        $('#prioridad').html(priori)
+      }
+      
+      function bakuImprimirBtn(){
+        var bakuStock = parseInt($('input[name=baku_stock]').val())
+        var bakuPrint = parseInt($('input[name=baku_imprimir]').val())
+        $('input[name=baku_stock]').val(bakuStock+bakuPrint).change()
+      }
+      function donnImprimirBtn(){
+        var donnStock = parseInt($('input[name=donn_stock]').val())
+        var donnPrint = parseInt($('input[name=donn_imprimir]').val())
+        $('input[name=donn_stock]').val(donnStock+donnPrint).change()
+      }
+      
+      $(function(){
+        $('input').change(reloadBtn)
+        reloadBtn()
+      })
+    </script>
+  </body>
+</html>
+
